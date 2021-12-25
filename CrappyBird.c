@@ -7,11 +7,8 @@ https://github.com/DaffaDaff
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <conio.h>
 #include <time.h>
-
-#define tickDelay 250 // milliseconds
 
 #define canvasWidth 100
 #define canvasHeight 25
@@ -25,13 +22,15 @@ void playerUpdate();
 void updatePlayerPosition();
 void clearPlayer();
 void playerDeath();
+void playerMovement();
 
 void obstacleUpdate();
 void updateObstaclePosition();
 void setObstacle();
 void drawObstacles();
 
-void playerMovement();
+void menu();
+void game();
 void start();
 void update();
 void GameOver();
@@ -52,14 +51,7 @@ char canvas[canvasHeight][canvasWidth];
 
 int main()
 {
-    start();
-    
-    while(1)
-    {
-        update();
-        
-        if(isExit) break;
-    }
+    menu();
 
     return 0;
 }
@@ -109,7 +101,7 @@ object * removeObject(object objects[], int len, int index)
 object player;
 
 int playerVelocity = gravity; // y velocity | points per tick
-int jumpAcceleration = 0; // points per tick
+int jumpAcceleration; // points per tick
 int jumpPower = -3;
 
 void playerSetup()
@@ -215,9 +207,9 @@ void playerDeath()
 
 object obstacles[canvasWidth / obstacleDelay + 1];
 
-int obstacleCount = 0;
+int obstacleCount;
 
-int obstacleTimer = 0;
+int obstacleTimer;
 
 void obstacleUpdate()
 {
@@ -291,18 +283,53 @@ void drawObstacles()
 
 #pragma endregion Obstacles
 
-void start()
+void menu()
 {
     clearCanvas();
     draw();
     
-
     printf("\nCRAPPY BIRD\n");
-    printf("Press Space To Start");
+    printf("          \n");
+    printf("\nScore: %d\n\n", score);
+    printf("Press Space To Jump \n");
+    printf("Press X To Exit\n");
     while(1)
     {
-        if(getch() == ' ') break; 
+        if(kbhit())
+        {
+            switch(getch())
+            {
+                case ' ': 
+                    game();
+                    break;
+                case 'x': 
+                    exit(0);
+                    break;
+            }
+        }
     }
+}
+
+void game()
+{
+    start();
+    
+    while(1)
+    {
+        update();
+        
+        if(isExit) break;
+    }
+}
+
+void start()
+{
+    isGameover = 0;
+
+    jumpAcceleration = 0;
+
+    obstacleCount = 0;
+    obstacleTimer = 0;
 
     srand(time(0));
     clearCanvas();
@@ -322,23 +349,36 @@ void update()
 
     if(isGameover) GameOver();
 
-    printf("\nScore: %d", score);
+    printf("\nCRAPPY BIRD\n");
+    printf("          \n");
+    printf("\nScore: %d\n\n", score);
+    printf("Press Space To Jump \n");
+    printf("Press X To Exit\n");
     //printf("\nTick : %d\n", ticksCount);
     ticksCount++;
-    delay(tickDelay);
 }
 
 void GameOver()
 {
-    printf("\n\n!!GAMEOVER!!\n\n");
-    printf("Press Space To Exit");
+    printf("\nCRAPPY BIRD\n");
+    printf("GAMEOVER!!\n");
+    printf("\nScore: %d\n\n", score);
+    printf("Press Space To Start\n");
+    printf("Press X To Exit\n");
     while(1)
     {
-        if(getch() == ' ') 
+        if(kbhit())
         {
-            Exit();
-            break;
-        } 
+            switch(getch())
+            {
+                case ' ': 
+                    game();
+                    break;
+                case 'x': 
+                    exit(0);
+                    break;
+            }
+        }
     }
 }
 
@@ -355,7 +395,7 @@ void clearCanvas()
 
 void draw()
 {
-    system("cls");
+    printf("\033[H");
     
     for(int i = -1; i <= canvasHeight; i++){
         for(int j = -1; j <= canvasWidth; j++){
@@ -375,6 +415,9 @@ void Input()
             case ' ': 
                 jumpAcceleration = jumpPower;
                 break;
+            case 'x': 
+                exit(0);
+                break;
         }
     }
 }
@@ -382,13 +425,6 @@ void Input()
 int rnd(int min, int max)
 {
     return ( rand() % (max - min + 1) ) + min;
-}
-
-void delay(int milli_seconds)
-{
-    clock_t start_time = clock();
-  
-    while (clock() < start_time + milli_seconds);
 }
 
 void Exit()
